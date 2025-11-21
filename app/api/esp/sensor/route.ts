@@ -4,10 +4,6 @@ import { SensorData, ApiResponse } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
 
-/**
- * POST endpoint for ESP32/ESP8266 to send sensor data
- * Body: { co2: number, co: number, dust: number }
- */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()

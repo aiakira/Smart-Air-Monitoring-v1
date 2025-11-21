@@ -1,21 +1,10 @@
-/*
- * ESP32 Air Quality Monitor
- * Mengirim data sensor CO2, CO, dan Debu ke database
- * Membaca status kontrol fan dari database
- */
 
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
-
-// ===== KONFIGURASI WIFI =====
 const char* ssid = "NAMA_WIFI_ANDA";           // Ganti dengan nama WiFi Anda
 const char* password = "PASSWORD_WIFI_ANDA";   // Ganti dengan password WiFi Anda
-
-// ===== KONFIGURASI SERVER =====
-// Ganti dengan URL aplikasi Next.js Anda (setelah deploy)
-// Contoh: "https://your-app.vercel.app" atau "http://192.168.1.100:3000" (local)
-const char* serverUrl = "http://192.168.1.100:3000";  // Ganti dengan URL server Anda
+const char* serverUrl = "https://smart-air-monitoring.vercel.app/";  // Ganti dengan URL server Anda
 
 // ===== PIN KONFIGURASI =====
 const int FAN_PIN = 2;           // Pin untuk relay fan (GPIO2)
