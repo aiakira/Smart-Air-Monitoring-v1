@@ -3,12 +3,11 @@
 import { useState, useEffect } from "react"
 import { SensorCard } from "@/components/sensor-card"
 import { AirQualityGauge } from "@/components/air-quality-gauge"
-import { FanControl } from "@/components/fan-control"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
-import { Zap, RefreshCw, Activity, BarChart3, History } from "lucide-react"
+import { RefreshCw, Activity, BarChart3, History } from "lucide-react"
 import { useSensorData } from "@/hooks/use-sensor-data"
 import { SensorDataWithCategories, ApiResponse } from "@/lib/types"
 
@@ -110,7 +109,7 @@ export default function Dashboard() {
     )
   }
 
-  const lastUpdateTime = new Date(sensorData.timestamp).toLocaleTimeString("id-ID")
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
@@ -170,27 +169,7 @@ export default function Dashboard() {
               />
             </div>
 
-            {/* Control Section */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="md:col-span-2">
-                <FanControl />
-              </div>
 
-              <Card className="p-6 shadow-sm">
-                <div className="flex items-start gap-3">
-                  <Zap className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
-                  <div>
-                    <h3 className="font-semibold mb-1">Status Kualitas Udara</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {sensorData.air_quality_status}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-3">
-                      Terakhir diupdate: {lastUpdateTime}
-                    </p>
-                  </div>
-                </div>
-              </Card>
-            </div>
           </TabsContent>
 
           {/* Grafik Tab */}
@@ -250,11 +229,7 @@ export default function Dashboard() {
                 </ResponsiveContainer>
               )}
 
-              {lastUpdate && (
-                <p className="text-sm text-muted-foreground mt-4">
-                  Terakhir diperbarui: {lastUpdate}
-                </p>
-              )}
+
             </Card>
           </TabsContent>
 
