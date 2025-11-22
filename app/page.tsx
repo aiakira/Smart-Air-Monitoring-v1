@@ -17,7 +17,6 @@ export default function Dashboard() {
   const [chartData, setChartData] = useState<any[]>([])
   const [historicalData, setHistoricalData] = useState<SensorDataWithCategories[]>([])
   const [chartLoading, setChartLoading] = useState(false)
-  const [lastUpdate, setLastUpdate] = useState<string>("")
 
   const getCategoryStatus = (category: string): "good" | "moderate" | "poor" => {
     const lowerCategory = category.toLowerCase()
@@ -54,7 +53,6 @@ export default function Dashboard() {
           }
         })
         setChartData(formattedData)
-        setLastUpdate(new Date().toLocaleTimeString("id-ID"))
       }
     } catch (err) {
       console.error('Error fetching chart data:', err)
