@@ -28,8 +28,12 @@ export function useSensorData(refreshInterval: number = 5000): UseSensorDataRetu
       
       const result: ApiResponse<SensorDataWithCategories> = await response.json()
       
-      if (result.success && result.data) {
+      if (result.success) {
         setData(result.data)
+        // If no data, set a friendly error message
+        if (!result.data && result.error) {
+          setError(new Error(result.error))
+        }
       } else {
         throw new Error(result.error || 'Failed to fetch sensor data')
       }

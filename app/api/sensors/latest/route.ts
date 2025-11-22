@@ -51,10 +51,11 @@ export async function GET() {
     if (result.length === 0) {
       return NextResponse.json<ApiResponse<null>>(
         {
-          success: false,
-          error: 'No sensor data available',
+          success: true,
+          data: null,
+          error: 'No sensor data available. Please send data from ESP32 or use test endpoint.',
         },
-        { status: 404 }
+        { status: 200 }
       )
     }
 

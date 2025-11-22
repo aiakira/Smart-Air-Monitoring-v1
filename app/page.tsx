@@ -98,9 +98,53 @@ export default function Dashboard() {
   if (!sensorData) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">Tidak ada data sensor tersedia</p>
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
+          <div className="mb-8">
+            <h1 className="text-4xl font-bold text-foreground mb-2 flex items-center gap-3">
+              <Activity className="h-8 w-8 text-primary" />
+              Smart Air Monitoring System
+            </h1>
+            <p className="text-muted-foreground">Monitoring Kualitas Udara Real-time dengan ESP32</p>
+          </div>
+          
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg p-8 text-center space-y-6">
+            <div className="text-6xl">📊</div>
+            <h2 className="text-2xl font-bold">Belum Ada Data Sensor</h2>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              Sistem siap menerima data. Silakan kirim data dari ESP32 atau gunakan endpoint test untuk mencoba.
+            </p>
+            
+            <div className="space-y-4 text-left max-w-2xl mx-auto">
+              <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg">
+                <h3 className="font-semibold mb-2">🔧 Setup Database (Jika Belum)</h3>
+                <p className="text-sm text-muted-foreground mb-2">Akses endpoint ini untuk setup database:</p>
+                <code className="block bg-slate-800 text-green-400 p-2 rounded text-xs">
+                  http://localhost:3000/api/setup-db
+                </code>
+              </div>
+              
+              <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg">
+                <h3 className="font-semibold mb-2">📡 Test Kirim Data</h3>
+                <p className="text-sm text-muted-foreground mb-2">Gunakan curl untuk test:</p>
+                <code className="block bg-slate-800 text-green-400 p-2 rounded text-xs overflow-x-auto">
+                  curl -X POST http://localhost:3000/api/esp/sensor -H "Content-Type: application/json" -d '&#123;"co2": 450, "co": 5.2, "dust": 35&#125;'
+                </code>
+              </div>
+              
+              <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg">
+                <h3 className="font-semibold mb-2">🔌 ESP32 Setup</h3>
+                <p className="text-sm text-muted-foreground">
+                  Upload code ke ESP32 dan pastikan WiFi credentials sudah benar. 
+                  Lihat Serial Monitor untuk debug.
+                </p>
+              </div>
+            </div>
+            
+            {error && (
+              <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded text-sm text-yellow-800 dark:text-yellow-200">
+                {error.message}
+              </div>
+            )}
           </div>
         </div>
       </div>
