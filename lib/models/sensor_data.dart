@@ -114,6 +114,20 @@ class SensorData {
     return 'CO₂: $co2Desc\nCO: $coDesc\nDebu: $dustDesc';
   }
 
+  // Public getter methods untuk description
+  String getCO2Description() {
+    return _getCO2Description();
+  }
+  
+  String getCODescription() {
+    return _getCODescription();
+  }
+  
+  String getDustDescription() {
+    return _getDustDescription();
+  }
+  
+  // Private methods
   String _getCO2Description() {
     if (co2 <= 800) {
       return 'Udara sehat, ventilasi bagus';

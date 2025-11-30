@@ -4,7 +4,6 @@ import '../models/sensor_data.dart';
 import '../services/api_service.dart';
 import 'package:intl/intl.dart';
 
-// Halaman Analitik - menampilkan grafik dan riwayat data
 class AnalyticsPage extends StatefulWidget {
   const AnalyticsPage({super.key});
 
@@ -13,10 +12,8 @@ class AnalyticsPage extends StatefulWidget {
 }
 
 class _AnalyticsPageState extends State<AnalyticsPage> {
-  // Dropdown untuk memilih sensor
   String _selectedSensor = 'CO₂';
 
-  // Data historis (dari API atau simulasi)
   List<SensorData> _historicalData = [];
   bool _isLoadingData = false;
   bool _hasError = false;
@@ -27,7 +24,6 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
     _loadHistoricalData();
   }
 
-  // Fungsi untuk memuat data historis dari API
   Future<void> _loadHistoricalData({int hours = 24}) async {
     setState(() {
       _isLoadingData = true;
@@ -35,7 +31,6 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
     });
 
     try {
-      // Coba ambil dari API
       final data = await ApiService.getHistoricalData(hours: hours);
       
       if (data.isNotEmpty) {
@@ -44,14 +39,12 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
           _isLoadingData = false;
         });
       } else {
-        // Fallback ke data simulasi jika API tidak tersedia
         _generateSampleData();
         setState(() {
           _isLoadingData = false;
         });
       }
     } catch (e) {
-      // Fallback ke data simulasi jika error
       _generateSampleData();
       setState(() {
         _isLoadingData = false;
@@ -60,7 +53,6 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
     }
   }
 
-  // Fungsi untuk membuat data sampel (fallback)
   void _generateSampleData() {
     _historicalData = [];
     DateTime now = DateTime.now();
@@ -76,7 +68,6 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
     }
   }
 
-  // Fungsi untuk mendapatkan data berdasarkan sensor yang dipilih
   List<double> _getSelectedData() {
     switch (_selectedSensor) {
       case 'CO₂':
@@ -90,7 +81,6 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
     }
   }
 
-  // Fungsi untuk mendapatkan unit berdasarkan sensor
   String _getUnit() {
     switch (_selectedSensor) {
       case 'CO₂':
@@ -121,7 +111,6 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
       ),
       body: Column(
         children: [
-          // Dropdown untuk memilih sensor
           Container(
             padding: const EdgeInsets.all(16),
             child: DropdownButtonFormField<String>(
@@ -145,13 +134,11 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                   setState(() {
                     _selectedSensor = newValue;
                   });
-                  // Grafik dan tabel akan otomatis update karena menggunakan _selectedSensor
                 }
               },
             ),
           ),
 
-          // Error message (jika ada)
           if (_hasError)
             Container(
               width: double.infinity,
@@ -179,7 +166,6 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
               ),
             ),
 
-          // Grafik
           Expanded(
             flex: 2,
             child: Padding(
@@ -242,7 +228,6 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
             ),
           ),
 
-          // Tabel Riwayat
           Expanded(
             flex: 2,
             child: Padding(
@@ -275,7 +260,6 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
     );
   }
 
-  // Widget untuk membuat grafik garis
   Widget _buildLineChart() {
     List<double> data = _getSelectedData();
     double maxValue = data.reduce((a, b) => a > b ? a : b) * 1.2;
@@ -347,7 +331,6 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
     );
   }
 
-  // Widget untuk membuat tabel riwayat
   Widget _buildHistoryTable() {
     List<double> data = _getSelectedData();
     String unit = _getUnit();
@@ -408,4 +391,3 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
     );
   }
 }
-

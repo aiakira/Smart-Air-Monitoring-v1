@@ -1,268 +1,208 @@
-# 🌬️ Smart Air Monitoring System
+# 🌬️ Smart Air Monitoring v2
 
-Aplikasi monitoring kualitas udara real-time dengan Flutter, Node.js, dan PostgreSQL (Neon).
+Smart Air Monitoring System - Aplikasi Flutter untuk monitoring kualitas udara real-time dengan integrasi Supabase.
 
 ## 📱 Features
 
-- ✅ Real-time monitoring CO₂, CO, dan Debu (PM2.5)
-- ✅ Dashboard dengan grafik tren 24 jam
-- ✅ Analytics page dengan historical data
-- ✅ 7 level kategori kualitas udara (BAIK, MASIH AMAN, SEDANG, TIDAK SEHAT, BAHAYA, SANGAT BURUK, FATAL)
-- ✅ Rekomendasi otomatis berdasarkan kualitas udara
-- ✅ Notifikasi system
-- ✅ Control exhaust fan (manual/auto)
-- ✅ Integration dengan ESP32/Arduino
+- ✅ Real-time air quality monitoring (CO, CO2, PM2.5)
+- ✅ Dashboard dengan visualisasi data
+- ✅ Analytics & Charts
+- ✅ Health monitoring
+- ✅ Notifications & Alerts
+- ✅ Medical profile management
+- ✅ Supabase integration untuk database cloud
 
-## 🏗️ Architecture
+## 🗄️ Database
 
-```
-┌─────────────┐
-│   ESP32     │ ──POST──> Backend API ──> Neon PostgreSQL
-│   Sensors   │           (Node.js)       (Database)
-└─────────────┘                                │
-                                               │
-┌─────────────┐                                │
-│   Flutter   │ <──GET────────────────────────┘
-│     App     │
-└─────────────┘
+Aplikasi ini menggunakan **Supabase** sebagai backend database.
+
+### Database Structure
+
+```sql
+Table: sensor_data
+- id (bigint, primary key)
+- co (double precision) - Kadar CO dalam ppm
+- co2 (double precision) - Kadar CO₂ dalam ppm
+- pm25 (double precision) - Kadar PM2.5 dalam µg/m³
+- timestamp (timestamp) - Waktu pengukuran
 ```
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-- Flutter SDK (3.10+)
-- Node.js (18+)
-- PostgreSQL (Neon account)
-- ESP32/Arduino (optional)
+- Flutter SDK (3.38.0 atau lebih baru)
+- Dart SDK
+- Android Studio / VS Code
+- Supabase account
 
-### 1. Setup Database
+### Installation
 
-1. Buat akun di [Neon.tech](https://neon.tech)
-2. Buat database baru
-3. Jalankan schema SQL:
+1. **Clone repository**
    ```bash
-   # Di Neon Console SQL Editor, jalankan:
-   database/neon_schema_fixed.sql
-   database/add_missing_parts.sql
-   database/add_views.sql
-   database/add_sample_data.sql
+   git clone https://github.com/aiakira/Smart-Air-Monitoring-v1.git
+   cd Smart-Air-Monitoring-v1
    ```
 
-### 2. Setup Backend API
+2. **Install dependencies**
+   ```bash
+   flutter pub get
+   ```
 
-```bash
-cd backend
-npm install
-cp .env.example .env
-# Edit .env dengan DATABASE_URL dari Neon
-npm start
-```
+3. **Setup Supabase**
+   - Buat project di [Supabase](https://supabase.com)
+   - Copy Project URL dan Anon Key
+   - Edit `lib/config/supabase_config.dart`:
+     ```dart
+     static const String supabaseUrl = 'YOUR_SUPABASE_URL';
+     static const String supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY';
+     ```
 
-Backend akan running di `http://localhost:3000`
+4. **Run app**
+   ```bash
+   flutter run
+   ```
 
-### 3. Setup Flutter App
+## 📊 Supabase Integration
 
-```bash
-flutter pub get
-flutter run
-```
+### Setup Database
 
-### 4. Setup ESP32 (Optional)
+Jalankan SQL berikut di Supabase SQL Editor:
 
-1. Buka `iot/esp32_sensor.ino` di Arduino IDE
-2. Update WiFi credentials dan API URL
-3. Upload ke ESP32
-
-## 📊 Database Schema
-
-### Table: sensor_data
 ```sql
-- id: SERIAL PRIMARY KEY
-- co2: DOUBLE PRECISION (ppm)
-- co: DOUBLE PRECISION (ppm)
-- dust: DOUBLE PRECISION (µg/m³)
-- timestamp: TIMESTAMP
+CREATE TABLE sensor_data (
+  id BIGSERIAL PRIMARY KEY,
+  co DOUBLE PRECISION,
+  co2 DOUBLE PRECISION,
+  pm25 DOUBLE PRECISION,
+  timestamp TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_sensor_data_timestamp ON sensor_data(timestamp DESC);
+
+ALTER TABLE sensor_data ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Enable read access for all users" ON sensor_data
+  FOR SELECT USING (true);
+
+CREATE POLICY "Enable insert access for all users" ON sensor_data
+  FOR INSERT WITH CHECK (true);
 ```
 
-### Functions (7 functions)
-- `get_co2_category(co2)` - Kategori CO₂
-- `get_co_category(co)` - Kategori CO
-- `get_dust_category(dust)` - Kategori Debu
-- `get_air_quality_status(co2, co, dust)` - Status keseluruhan
-- `get_latest_reading()` - Data terbaru
-- `get_historical_data(hours)` - Data historis
-- `cleanup_old_data(days)` - Hapus data lama
+### Usage Example
 
-### Views (2 views)
-- `daily_statistics` - Statistik harian
-- `latest_readings` - 100 data terbaru
+```dart
+import 'package:smart_air_monitoring_room/services/supabase_service.dart';
 
-## 📡 API Endpoints
+// Fetch latest data
+final supabase = SupabaseService();
+final data = await supabase.getLatestSensorData();
 
-### POST /api/data
-Insert data sensor baru (untuk ESP32)
+// Insert data
+final newData = SensorData(
+  co: 5.0,
+  co2: 450.0,
+  pm25: 12.5,
+  timestamp: DateTime.now(),
+);
+await supabase.insertSensorData(newData);
 
-**Request:**
-```json
-{
-  "co2": 450.5,
-  "co": 5.2,
-  "dust": 25.3
-}
-```
-
-### GET /api/data/terbaru
-Ambil data sensor terbaru
-
-**Response:**
-```json
-{
-  "id": 1,
-  "co2": 450.5,
-  "co": 5.2,
-  "dust": 25.3,
-  "timestamp": "2024-01-15T10:30:00Z",
-  "co2_category": "BAIK",
-  "co_category": "AMAN",
-  "dust_category": "SEDANG",
-  "air_quality_status": "SEDANG"
-}
-```
-
-### GET /api/data/historis?hours=24
-Ambil data historis untuk grafik
-
-**Response:**
-```json
-{
-  "data": [...],
-  "count": 24,
-  "hours": 24
-}
-```
-
-Dokumentasi lengkap: [backend/API_DOCUMENTATION.md](backend/API_DOCUMENTATION.md)
-
-## 🎯 Kategori Kualitas Udara
-
-### CO₂ (5 kategori)
-- ✅ BAIK: ≤ 800 ppm
-- 🟢 MASIH AMAN: 801-1000 ppm
-- 🟡 TIDAK SEHAT: 1001-2000 ppm
-- 🟠 BAHAYA: 2001-5000 ppm
-- 🔴 SANGAT BERBAHAYA: > 5000 ppm
-
-### CO (5 kategori)
-- ✅ AMAN: ≤ 9 ppm
-- 🟡 TIDAK SEHAT: 10-35 ppm
-- 🟠 BERBAHAYA: 36-200 ppm
-- 🔴 SANGAT BERBAHAYA: 201-800 ppm
-- ⚫ FATAL: > 800 ppm
-
-### Debu/PM2.5 (4 kategori)
-- ✅ BAIK: ≤ 15 µg/m³
-- 🟢 SEDANG: 16-35 µg/m³
-- 🟡 TIDAK SEHAT: 36-55 µg/m³
-- 🔴 SANGAT TIDAK SEHAT: > 55 µg/m³
-
-## 📁 Project Structure
-
-```
-flutter_app/
-├── lib/                    # Flutter app source
-│   ├── main.dart
-│   ├── models/            # Data models
-│   ├── pages/             # UI pages
-│   ├── services/          # API services
-│   ├── widgets/           # Reusable widgets
-│   └── theme/             # App theme
-├── backend/               # Node.js API
-│   ├── server.js          # Main server file
-│   ├── .env.example       # Environment template
-│   └── API_DOCUMENTATION.md
-├── database/              # Database scripts
-│   ├── neon_schema_fixed.sql
-│   ├── add_missing_parts.sql
-│   ├── add_views.sql
-│   └── README.md
-├── iot/                   # ESP32/Arduino code
-│   └── esp32_sensor.ino
-└── .kiro/                 # Kiro specs
-    └── specs/
-        └── modern-chart-improvements/
-```
-
-## 🔧 Development
-
-### Run Backend in Dev Mode
-```bash
-cd backend
-npm run dev  # with nodemon
-```
-
-### Run Flutter in Debug Mode
-```bash
-flutter run -d chrome  # Web
-flutter run -d windows # Windows
-```
-
-### Database Management
-```bash
-# Test connection
-node database/test_connection.js
-
-# Check schema
-node database/check_existing_schema.js
-```
-
-## 🚀 Deployment
-
-### Backend (Vercel/Railway/Heroku)
-1. Push code ke GitHub
-2. Connect repository ke platform
-3. Set environment variable `DATABASE_URL`
-4. Deploy!
-
-### Flutter (Web)
-```bash
-flutter build web
-# Deploy ke Firebase Hosting, Vercel, atau Netlify
-```
-
-### Flutter (Mobile)
-```bash
-flutter build apk --release  # Android
-flutter build ios --release  # iOS
+// Real-time updates
+supabase.streamSensorData().listen((data) {
+  print('New data: ${data?.co2} ppm');
+});
 ```
 
 ## 📚 Documentation
 
-- [Quick Start Guide](QUICK_START.md)
-- [Database Setup](database/NEW_DATABASE_SETUP.md)
-- [Database Schema](database/SCHEMA_EXPLANATION.md)
-- [API Documentation](backend/API_DOCUMENTATION.md)
-- [Modern Chart Spec](.kiro/specs/modern-chart-improvements/)
+- [TEST_SUPABASE.md](TEST_SUPABASE.md) - Quick test guide
+- [INTEGRATION_EXAMPLE.md](INTEGRATION_EXAMPLE.md) - Integration examples
+
+## 🏗️ Project Structure
+
+```
+lib/
+├── config/
+│   ├── api_config.dart
+│   └── supabase_config.dart
+├── models/
+│   ├── sensor_data.dart
+│   ├── health_data.dart
+│   └── medical_profile.dart
+├── services/
+│   ├── supabase_service.dart
+│   ├── api_service.dart
+│   └── emergency_service.dart
+├── providers/
+│   ├── sensor_provider.dart
+│   ├── health_provider.dart
+│   └── supabase_sensor_provider.dart
+├── pages/
+│   ├── dashboard_page.dart
+│   ├── analytics_page.dart
+│   ├── health_page.dart
+│   ├── supabase_test_page.dart
+│   └── settings_page.dart
+└── widgets/
+    ├── sensor_detail_card.dart
+    ├── status_card.dart
+    └── health_widgets.dart
+```
+
+## 🔧 Configuration
+
+### API Configuration
+
+Edit `lib/config/api_config.dart` untuk konfigurasi API endpoint.
+
+### Supabase Configuration
+
+Edit `lib/config/supabase_config.dart` untuk konfigurasi Supabase credentials.
+
+**⚠️ PENTING**: Jangan commit file `supabase_config.dart` dengan credentials asli ke Git!
+
+## 🧪 Testing
+
+### Test Supabase Connection
+
+1. Run app
+2. Buka halaman "Supabase Test"
+3. Klik "Fetch Latest Data"
+4. Klik "Insert Test Data"
+
+### Run Tests
+
+```bash
+flutter test
+```
+
+## 📱 Build APK
+
+```bash
+flutter build apk --release
+```
+
+APK akan tersedia di: `build/app/outputs/flutter-apk/app-release.apk`
 
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## 📝 License
+## 📄 License
 
-This project is open source and available under the [MIT License](LICENSE).
+This project is licensed under the MIT License.
 
 ## 👨‍💻 Author
 
-Created with ❤️ by [Your Name]
+**aiakira**
+- GitHub: [@aiakira](https://github.com/aiakira)
 
 ## 🙏 Acknowledgments
 
-- Flutter team for amazing framework
-- Neon for serverless PostgreSQL
-- fl_chart for beautiful charts
-- ESP32 community
+- Flutter Team
+- Supabase Team
+- All contributors
 
 ---
 
-**⭐ Star this repo if you find it helpful!**
+**Made with ❤️ using Flutter & Supabase**

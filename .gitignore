@@ -75,6 +75,9 @@ package-lock.json
 backend/.env
 backend/.env.local
 
+# Supabase config (contains API keys)
+lib/config/supabase_config.dart
+
 # Database credentials
 database/connection_string.txt
 
