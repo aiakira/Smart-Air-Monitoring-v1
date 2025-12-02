@@ -61,42 +61,10 @@ class DashboardHeader extends StatelessWidget {
     String status = currentData.getAirQualityStatus();
     int statusColor = currentData.getStatusColor();
 
-    return Column(
-      children: [
-        StatusCard(
-          status: status,
-          color: Color(statusColor),
-          icon: _getStatusIcon(status),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(top: AppTheme.spacingSmall),
-          child: Row(
-            children: [
-              Icon(
-                isConnected ? Icons.wifi : Icons.wifi_off,
-                color: isConnected ? Colors.green : Colors.red,
-                size: 16,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                isConnected ? 'Terhubung ke server' : 'Terputus dari server',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: isConnected ? Colors.green.shade700 : Colors.red.shade400,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                'Update: ${_formatFullTimestamp(currentData.timestamp)}',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+    return StatusCard(
+      status: status,
+      color: Color(statusColor),
+      icon: _getStatusIcon(status),
     );
   }
 
@@ -162,36 +130,6 @@ class SensorGrid extends StatelessWidget {
               ),
             ),
           ],
-        ),
-        const SizedBox(height: AppTheme.spacingMedium),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(AppTheme.spacingMedium),
-          decoration: BoxDecoration(
-            color: Color(statusColor).withOpacity(0.1),
-            borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-            border: Border.all(color: Color(statusColor).withOpacity(0.3)),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.lightbulb_outline,
-                color: Color(statusColor),
-                size: 20,
-              ),
-              const SizedBox(width: AppTheme.spacingSmall),
-              Expanded(
-                child: Text(
-                  currentData.getRecommendation(),
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Color(statusColor),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
         ),
         const SizedBox(height: AppTheme.spacingMedium),
         SensorDetailCard(

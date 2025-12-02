@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
+import '../providers/sensor_provider.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -71,6 +72,11 @@ class _SettingsPageState extends State<SettingsPage> {
             _buildSectionTitle('Umum'),
             const SizedBox(height: 12),
             _buildGeneralSettingsCard(),
+            const SizedBox(height: 24),
+
+            _buildSectionTitle('Status Sistem'),
+            const SizedBox(height: 12),
+            _buildSystemStatusCard(),
             const SizedBox(height: 24),
 
             _buildResetButton(),
@@ -307,6 +313,146 @@ class _SettingsPageState extends State<SettingsPage> {
       value: value,
       onChanged: onChanged,
     );
+  }
+
+  Widget _buildSystemStatusCard() {
+    return Consumer<SensorProvider>(
+      builder: (context, provider, child) {
+        final lastUpdate = provider.currentData?.timestamp;
+        final isConnected = provider.isConnected;
+        final isDataOld = lastUpdate != null && 
+            DateTime.now().difference(lastUpdate).inMinutes > 5;
+
+        return Card(
+          elevation: 2,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                // Connection Status
+                Row(
+                  children: [
+                    Icon(
+                      isConnected ? Icons.wifi : Icons.wifi_off,
+                      color: isConnected ? Colors.green : Colors.red,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Status Koneksi',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            isConnected ? 'Terhubung ke server' : 'Terputus dari server',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: isConnected ? Colors.green.shade700 : Colors.red.shade400,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: isConnected ? Colors.green.shade50 : Colors.red.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        isConnected ? 'Online' : 'Offline',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: isConnected ? Colors.green.shade700 : Colors.red.shade700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const Divider(height: 24),
+                // Last Update
+                Row(
+                  children: [
+                    Icon(
+                      Icons.update,
+                      color: isDataOld ? Colors.orange : Colors.blue.shade700,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Pembaruan Terakhir',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            lastUpdate != null
+                                ? _formatFullTimestamp(lastUpdate)
+                                : 'Belum ada data',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                if (isDataOld) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.orange.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.warning_amber, color: Colors.orange.shade700, size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Data lebih dari 5 menit. Periksa koneksi sensor.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.orange.shade700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  String _formatFullTimestamp(DateTime time) {
+    final date =
+        '${time.day.toString().padLeft(2, '0')}/${time.month.toString().padLeft(2, '0')}/${time.year}';
+    final timeStr = '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}:${time.second.toString().padLeft(2, '0')}';
+    return '$date $timeStr';
   }
 
   Widget _buildResetButton() {
