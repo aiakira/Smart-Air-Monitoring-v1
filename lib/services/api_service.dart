@@ -2,34 +2,29 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/sensor_data.dart';
+import '../models/notification_item.dart';
+import '../models/sensor_statistics.dart';
+import '../config/api_config.dart';
+import 'vercel_adapter.dart';
 
 class ApiService {
-  // Ganti dengan URL Backend API Anda
-  // Untuk testing lokal di emulator Android: 'http://10.0.2.2:3000'
-  // Untuk testing lokal di HP (jaringan sama): 'http://192.168.X.X:3000' (ganti dengan IP PC)
-  // Untuk production: 'https://your-api-domain.com'
-  static const String baseUrl = 'http://10.0.2.2:3000';
-
-  static Map<String, String> get headers => {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      };
+  static String get baseUrl => ApiConfig.baseUrl;
+  static Map<String, String> get headers => ApiConfig.headers;
+  static const Duration _defaultTimeout = Duration(seconds: 10);
 
   static Future<SensorData?> getLatestData() async {
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/api/data/terbaru'),
-        headers: headers,
-      ).timeout(const Duration(seconds: 10));
+      final response = await http
+          .get(Uri.parse('$baseUrl/api/sensor/latest'), headers: headers)
+          .timeout(_defaultTimeout);
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
-        return SensorData(
-          co2: (jsonData['co2'] ?? 0).toDouble(),
-          co: (jsonData['co'] ?? 0).toDouble(),
-          dust: (jsonData['debu'] ?? 0).toDouble(),
-          timestamp: DateTime.parse(jsonData['waktu']),
-        );
+        if (VercelAdapter.isValidResponse(jsonData, response.statusCode)) {
+          return VercelAdapter.parseLatestData(jsonData);
+        }
+        debugPrint('API Error: format data tidak valid - ${response.body}');
+        return null;
       } else {
         debugPrint('API Error: ${response.statusCode} - ${response.body}');
         return null;
@@ -40,27 +35,18 @@ class ApiService {
     }
   }
 
-  static Future<List<SensorData>> getHistoricalData({
-    int hours = 24,
-  }) async {
+  static Future<List<SensorData>> getHistoricalData({int hours = 24}) async {
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/api/data/historis?hours=$hours'),
-        headers: headers,
-      ).timeout(const Duration(seconds: 10));
+      final response = await http
+          .get(
+            Uri.parse('$baseUrl/api/sensor/history?limit=$hours'),
+            headers: headers,
+          )
+          .timeout(_defaultTimeout);
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
-        final List<dynamic> dataList = jsonData['data'] ?? [];
-
-        return dataList.map((item) {
-          return SensorData(
-            co2: (item['co2'] ?? 0).toDouble(),
-            co: (item['co'] ?? 0).toDouble(),
-            dust: (item['debu'] ?? 0).toDouble(),
-            timestamp: DateTime.parse(item['waktu']),
-          );
-        }).toList();
+        return VercelAdapter.parseHistoryData(jsonData);
       } else {
         debugPrint('API Error: ${response.statusCode} - ${response.body}');
         return [];
@@ -71,59 +57,17 @@ class ApiService {
     }
   }
 
-
-  static Future<Map<String, dynamic>?> getControlStatus() async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/api/kontrol/status'),
-        headers: headers,
-      ).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
-      } else {
-        debugPrint('API Error: ${response.statusCode} - ${response.body}');
-        return null;
-      }
-    } catch (e) {
-      debugPrint('Error getControlStatus: $e');
-      return null;
-    }
-  }
-
-  static Future<bool> sendControlCommand({
-    String? fan, // "ON" atau "OFF"
-    String? mode, // "AUTO" atau "MANUAL"
-  }) async {
-    try {
-      final body = <String, dynamic>{};
-      if (fan != null) body['fan'] = fan;
-      if (mode != null) body['mode'] = mode;
-
-      final response = await http.post(
-        Uri.parse('$baseUrl/api/kontrol'),
-        headers: headers,
-        body: json.encode(body),
-      ).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return true;
-      } else {
-        debugPrint('API Error: ${response.statusCode} - ${response.body}');
-        return false;
-      }
-    } catch (e) {
-      debugPrint('Error sendControlCommand: $e');
-      return false;
-    }
+  // Statistik tidak tersedia di Vercel API
+  static Future<SensorStatistics?> getSensorStatistics({int hours = 24}) async {
+    return null;
   }
 
   static Future<bool> testConnection() async {
     try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/api/health'),
-        headers: headers,
-      ).timeout(const Duration(seconds: 5));
+      // Test dengan endpoint yang ada di Vercel
+      final response = await http
+          .get(Uri.parse('$baseUrl/api/sensor/latest'), headers: headers)
+          .timeout(const Duration(seconds: 5));
 
       return response.statusCode == 200;
     } catch (e) {
@@ -131,5 +75,33 @@ class ApiService {
       return false;
     }
   }
-}
 
+  // Notifikasi tidak tersedia di Vercel API
+  static Future<List<NotificationItem>> getNotifications({
+    int limit = 30,
+    bool unreadOnly = false,
+  }) async {
+    return []; // Return empty list
+  }
+
+  static Future<int> getUnreadNotificationCount() async {
+    // Vercel belum punya endpoint notifikasi, return 0
+    // TODO: Implementasi endpoint notifikasi di Vercel jika diperlukan
+    return 0;
+  }
+
+  // Notifikasi tidak tersedia di Vercel API
+  static Future<bool> markNotificationAsRead(int id) async {
+    return false;
+  }
+
+  // Notifikasi tidak tersedia di Vercel API
+  static Future<bool> deleteNotification(int id) async {
+    return false;
+  }
+
+  // Notifikasi tidak tersedia di Vercel API
+  static Future<bool> clearNotifications() async {
+    return false;
+  }
+}

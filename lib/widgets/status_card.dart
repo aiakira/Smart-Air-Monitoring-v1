@@ -22,10 +22,7 @@ class StatusCard extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            color,
-            color.withOpacity(0.8),
-          ],
+          colors: [color, color.withOpacity(0.8)],
         ),
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
         boxShadow: [
@@ -45,11 +42,7 @@ class StatusCard extends StatelessWidget {
                 color: Colors.white.withOpacity(0.2),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                icon,
-                color: Colors.white,
-                size: 40,
-              ),
+              child: Icon(icon, color: Colors.white, size: 40),
             ),
             const SizedBox(height: AppTheme.spacingMedium),
           ],

@@ -45,13 +45,11 @@ class SensorDetailCard extends StatelessWidget {
                     padding: const EdgeInsets.all(AppTheme.spacingSmall),
                     decoration: BoxDecoration(
                       color: color.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
+                      borderRadius: BorderRadius.circular(
+                        AppTheme.borderRadiusSmall,
+                      ),
                     ),
-                    child: Icon(
-                      icon,
-                      color: color,
-                      size: 24,
-                    ),
+                    child: Icon(icon, color: color, size: 24),
                   ),
                   const SizedBox(width: AppTheme.spacingMedium),
                   Expanded(
@@ -103,10 +101,7 @@ class SensorDetailCard extends StatelessWidget {
               ),
               const SizedBox(height: AppTheme.spacingMedium),
               // Divider
-              Divider(
-                height: 1,
-                color: Colors.grey.shade200,
-              ),
+              Divider(height: 1, color: Colors.grey.shade200),
               const SizedBox(height: AppTheme.spacingMedium),
               // Deskripsi
               Row(

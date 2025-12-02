@@ -45,9 +45,9 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "✅ Connection test completed!" -ForegroundColor Green
     Write-Host ""
     Write-Host "Next steps:" -ForegroundColor Yellow
-    Write-Host "1. If schema not found, run: database/neon_schema_fixed.sql in Neon Console" -ForegroundColor White
+    Write-Host "1. Jika schema belum ada, jalankan: database/setup_database.sql" -ForegroundColor White
     Write-Host "2. Start backend server: cd backend && npm start" -ForegroundColor White
-    Write-Host "3. Test API: curl http://localhost:3000/api/sensor/latest" -ForegroundColor White
+    Write-Host "3. Test API: curl http://localhost:3000/api/data/terbaru" -ForegroundColor White
 } else {
     Write-Host ""
     Write-Host "❌ Connection test failed!" -ForegroundColor Red

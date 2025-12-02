@@ -1,16 +1,57 @@
-// Model data untuk menyimpan informasi sensor
+// Model data untuk menyimpan informasi sensor dari Supabase
 class SensorData {
-  final double co2; // Kadar CO₂ dalam ppm
+  final int? id; // ID dari database
   final double co; // Kadar CO dalam ppm
-  final double dust; // Kadar debu dalam µg/m³
+  final double co2; // Kadar CO₂ dalam ppm
+  final double pm25; // Kadar PM2.5 dalam µg/m³
   final DateTime timestamp; // Waktu pengukuran
 
   SensorData({
-    required this.co2,
+    this.id,
     required this.co,
-    required this.dust,
+    required this.co2,
+    required this.pm25,
     required this.timestamp,
   });
+
+  // Factory untuk membuat SensorData dari JSON (dari Supabase)
+  factory SensorData.fromJson(Map<String, dynamic> json) {
+    double _coerceToDouble(dynamic value) {
+      if (value == null) return 0;
+      if (value is num) return value.toDouble();
+      return double.tryParse(value.toString()) ?? 0;
+    }
+
+    DateTime parsedTime;
+    try {
+      if (json['timestamp'] != null) {
+        parsedTime = DateTime.parse(json['timestamp'].toString()).toLocal();
+      } else {
+        parsedTime = DateTime.now();
+      }
+    } catch (_) {
+      parsedTime = DateTime.now();
+    }
+
+    return SensorData(
+      id: json['id'] as int?,
+      co: _coerceToDouble(json['co']),
+      co2: _coerceToDouble(json['co2']),
+      pm25: _coerceToDouble(json['pm25']),
+      timestamp: parsedTime,
+    );
+  }
+
+  // Convert ke JSON untuk insert ke Supabase
+  Map<String, dynamic> toJson() {
+    return {
+      if (id != null) 'id': id,
+      'co': co,
+      'co2': co2,
+      'pm25': pm25,
+      'timestamp': timestamp.toIso8601String(),
+    };
+  }
 
   // Fungsi untuk menentukan kategori CO₂
   String getCO2Category() {
@@ -42,13 +83,13 @@ class SensorData {
     }
   }
 
-  // Fungsi untuk menentukan kategori Debu (PM2.5)
-  String getDustCategory() {
-    if (dust <= 15) {
+  // Fungsi untuk menentukan kategori PM2.5
+  String getPM25Category() {
+    if (pm25 <= 15) {
       return 'BAIK';
-    } else if (dust <= 35) {
+    } else if (pm25 <= 35) {
       return 'SEDANG';
-    } else if (dust <= 55) {
+    } else if (pm25 <= 55) {
       return 'TIDAK SEHAT';
     } else {
       return 'SANGAT TIDAK SEHAT';
@@ -57,19 +98,19 @@ class SensorData {
 
   // Fungsi untuk menentukan status kualitas udara keseluruhan
   String getAirQualityStatus() {
-    // Ambil kategori terburuk dari ketiga sensor
     List<String> categories = [
       getCO2Category(),
       getCOCategory(),
-      getDustCategory(),
+      getPM25Category(),
     ];
 
-    // Prioritas: FATAL > SANGAT BERBAHAYA > BAHAYA > TIDAK SEHAT > SEDANG > MASIH AMAN > AMAN > BAIK
     if (categories.contains('FATAL')) {
       return 'FATAL';
-    } else if (categories.contains('SANGAT BERBAHAYA') || categories.contains('SANGAT TIDAK SEHAT')) {
+    } else if (categories.contains('SANGAT BERBAHAYA') ||
+        categories.contains('SANGAT TIDAK SEHAT')) {
       return 'SANGAT BURUK';
-    } else if (categories.contains('BAHAYA') || categories.contains('BERBAHAYA')) {
+    } else if (categories.contains('BAHAYA') ||
+        categories.contains('BERBAHAYA')) {
       return 'BAHAYA';
     } else if (categories.contains('TIDAK SEHAT')) {
       return 'TIDAK SEHAT';
@@ -105,30 +146,8 @@ class SensorData {
     }
   }
 
-  // Fungsi untuk mendapatkan keterangan detail
-  String getDetailedDescription() {
-    String co2Desc = _getCO2Description();
-    String coDesc = _getCODescription();
-    String dustDesc = _getDustDescription();
-    
-    return 'CO₂: $co2Desc\nCO: $coDesc\nDebu: $dustDesc';
-  }
-
-  // Public getter methods untuk description
+  // Deskripsi untuk setiap parameter
   String getCO2Description() {
-    return _getCO2Description();
-  }
-  
-  String getCODescription() {
-    return _getCODescription();
-  }
-  
-  String getDustDescription() {
-    return _getDustDescription();
-  }
-  
-  // Private methods
-  String _getCO2Description() {
     if (co2 <= 800) {
       return 'Udara sehat, ventilasi bagus';
     } else if (co2 <= 1000) {
@@ -142,7 +161,7 @@ class SensorData {
     }
   }
 
-  String _getCODescription() {
+  String getCODescription() {
     if (co <= 9) {
       return 'Aman untuk ruangan';
     } else if (co <= 35) {
@@ -156,12 +175,12 @@ class SensorData {
     }
   }
 
-  String _getDustDescription() {
-    if (dust <= 15) {
+  String getPM25Description() {
+    if (pm25 <= 15) {
       return 'Kualitas udara baik';
-    } else if (dust <= 35) {
+    } else if (pm25 <= 35) {
       return 'Mulai tidak sehat untuk sensitif';
-    } else if (dust <= 55) {
+    } else if (pm25 <= 55) {
       return 'Tidak sehat untuk semua';
     } else {
       return 'Sangat tidak sehat';
@@ -171,7 +190,7 @@ class SensorData {
   // Fungsi untuk mendapatkan rekomendasi
   String getRecommendation() {
     String status = getAirQualityStatus();
-    
+
     switch (status) {
       case 'FATAL':
       case 'SANGAT BURUK':
@@ -190,20 +209,10 @@ class SensorData {
         return 'Pantau kualitas udara secara berkala.';
     }
   }
+
+  // Backward compatibility - untuk code yang masih pakai 'dust'
+  double get dust => pm25;
+  double get airQuality => pm25;
+  double get temperature => 0.0; // Placeholder
+  double get humidity => 0.0; // Placeholder
 }
-
-// Model untuk notifikasi
-class NotificationItem {
-  final String title;
-  final String message;
-  final DateTime timestamp;
-  final bool isRead;
-
-  NotificationItem({
-    required this.title,
-    required this.message,
-    required this.timestamp,
-    this.isRead = false,
-  });
-}
-

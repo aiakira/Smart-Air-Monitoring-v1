@@ -8,9 +8,15 @@
 
 const { Pool } = require('pg');
 
-// Connection string dari environment atau hardcoded untuk testing
-const DATABASE_URL = process.env.DATABASE_URL || 
-  'postgresql://neondb_owner:npg_U7IHN4rFmCVs@ep-lucky-darkness-a15k13s2-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require';
+// Connection string dari environment atau argumen CLI
+const DATABASE_URL = process.env.DATABASE_URL || process.argv[2];
+
+if (!DATABASE_URL) {
+  console.error('❌ DATABASE_URL tidak ditemukan.');
+  console.error('Jalankan: DATABASE_URL=... node database/test_connection.js');
+  console.error('atau: node database/test_connection.js "postgresql://user:pass@host/db?sslmode=require"');
+  process.exit(1);
+}
 
 console.log('🔍 Testing Neon Database Connection...\n');
 
@@ -53,7 +59,7 @@ async function testConnection() {
         console.log('   - ' + row.table_name);
       });
     } else {
-      console.log('   ⚠️  No tables found. Run database/neon_schema_fixed.sql first!');
+      console.log('   ⚠️  No tables found. Jalankan database/setup_database.sql terlebih dahulu!');
     }
     
     // Test 5: Check if sensor_data table exists specifically
@@ -89,7 +95,7 @@ async function testConnection() {
       }
     } else {
       console.log('\n❌ sensor_data table NOT found!');
-      console.log('   Run database/neon_schema_fixed.sql to create the schema.');
+      console.log('   Run database/setup_database.sql to create the schema.');
     }
     
     // Test 8: Check functions
